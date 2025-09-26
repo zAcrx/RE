@@ -1,0 +1,320 @@
+-- ====================
+-- CREATE UI
+-- ====================
+local Window = Rayfield:CreateWindow({
+   Name = "Roblox 增強工具",
+   Icon = 111899568071911,
+   LoadingTitle = "Roblox 增強工具",
+   LoadingSubtitle = "作者：DeiTsuki",
+   ShowText = "Roblox 增強工具",
+   Theme = "Default",
+
+   ToggleUIKeybind = "K",
+
+   DisableRayfieldPrompts = false,
+   DisableBuildWarnings = false,
+
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = nil,
+      FileName = "RobloxEnhancedConfig"
+   },
+
+   Discord = {
+      Enabled = false,
+      Invite = "noinvitelink",
+      RememberJoins = true
+   },
+
+   KeySystem = false,
+   KeySettings = {
+      Title = "未命名",
+      Subtitle = "金鑰系統",
+      Note = "未提供取得金鑰的方法",
+      FileName = "Key",
+      SaveKey = true,
+      GrabKeyFromSite = false,
+      Key = {"Hello"}
+   }
+})
+
+local HomeTab = Window:CreateTab("首頁", 14219650242)
+HomeTab:CreateLabel("歡迎使用 Roblox 增強工具！")
+HomeTab:CreateButton({
+    Name = "我的 Github",
+    Callback = function()
+        setclipboard("https://github.com/DeiTsukiii")
+        Rayfield:Notify({
+            Title = "已複製到剪貼簿",
+            Image = 111899568071911,
+            Content = "Github 連結已複製到剪貼簿。",
+            Duration = 5
+        })
+    end
+})
+HomeTab:CreateDropdown({
+   Name = "主題",
+   Options = {"Default", "AmberGlow", "Amethyst", "Bloom", "DarkBlue", "Green", "Light", "Ocean", "Serenity"},
+   CurrentOption = {"Default"},
+   MultipleOptions = false,
+   Flag = "Theme",
+   Callback = function(Options)
+        Window.ModifyTheme(Options[1])
+   end,
+})
+HomeTab:CreateButton({
+    Name = "卸載腳本",
+    Callback = function()
+        for _, conn in pairs(connections) do
+            if conn and conn.Disconnect then
+                conn:Disconnect()
+            end
+        end
+        connections = {}
+        disableFly()
+        for _, player in pairs(Players:GetPlayers()) do
+            RemoveESP(player)
+        end
+        Rayfield:Destroy()
+    end
+})
+HomeTab:CreateDivider()
+
+HomeTab:CreateLabel("作者: DeiTsuki")
+HomeTab:CreateLabel("版本: 1.0.0")
+HomeTab:CreateLabel("Discord: deitsuki_")
+HomeTab:CreateLabel("Github: github.com/DeiTsukiii")
+
+local EspTab = Window:CreateTab("ESP", 13321848320)
+EspTab:CreateToggle({
+   Name = "啟用",
+   CurrentValue = false,
+   Flag = "ToggleESP",
+   Callback = function(Value)
+        ESPSettings.Enabled = Value
+        if not ESPSettings.Enabled then
+            for _, esp in pairs(ESPs) do
+                for _, obj in pairs(esp) do
+                    obj.Visible = false
+                end
+            end
+        end
+   end,
+})
+EspTab:CreateToggle({
+   Name = "顯示方框",
+   CurrentValue = ESPSettings.Box,
+   Flag = "ToggleESPBox",
+   Callback = function(Value)
+        ESPSettings.Box = Value
+   end,
+})
+EspTab:CreateToggle({
+   Name = "顯示名稱",
+   CurrentValue = ESPSettings.Name,
+   Flag = "ToggleESPName",
+   Callback = function(Value)
+        ESPSettings.Name = Value
+   end,
+})
+EspTab:CreateToggle({
+   Name = "顯示連線線條",
+   CurrentValue = ESPSettings.Snapline,
+   Flag = "ToggleESPSnapline",
+   Callback = function(Value)
+        ESPSettings.Snapline = Value
+   end,
+})
+EspTab:CreateToggle({
+   Name = "忽略同隊",
+   CurrentValue = ESPSettings.VerifTeam,
+   Flag = "ToggleESPVerifTeam",
+   Callback = function(Value)
+        ESPSettings.VerifTeam = Value
+   end,
+})
+
+local AimlockTab = Window:CreateTab("自動瞄準", 126193793480527)
+AimlockToggle = AimlockTab:CreateToggle({
+   Name = "啟用",
+   CurrentValue = false,
+   Flag = "ToggleAimlock",
+   Callback = function(Value)
+        AimlockSettings.Enabled = Value
+   end,
+})
+local AimlockKeyInput
+AimlockKeyInput = AimlockTab:CreateInput({
+   Name = "切換按鍵",
+   CurrentValue = "P",
+   PlaceholderText = "P",
+   RemoveTextAfterFocusLost = false,
+   Flag = "AimlockKey",
+   Callback = function(Text)
+        local success, key = pcall(function() return Enum.KeyCode[Text] end)
+        if success and key then
+            AimlockSettings.Key = key
+        else
+            AimlockKeyInput:Set("P")
+            Rayfield:Notify({
+                Title = "無效按鍵",
+                Image = 111899568071911,
+                Content = "請輸入有效的按鍵名稱。",
+                Duration = 5
+            })
+        end
+   end,
+})
+AimlockTab:CreateToggle({
+   Name = "忽略同隊",
+   CurrentValue = AimlockSettings.VerifTeam,
+   Flag = "ToggleAimlockVerifTeam",
+   Callback = function(Value)
+        AimlockSettings.VerifTeam = Value
+   end,
+})
+AimlockTab:CreateToggle({
+   Name = "驗證遮蔽物",
+   CurrentValue = AimlockSettings.VerifyWall,
+   Flag = "ToggleAimlockVerifyWall",
+   Callback = function(Value)
+        AimlockSettings.VerifyWall = Value
+   end,
+})
+AimlockTab:CreateDropdown({
+   Name = "瞄準部位",
+   Options = {"Head", "Torso", "LeftArm", "RightArm", "LeftLeg", "RightLeg"},
+   CurrentOption = {"Head"},
+   MultipleOptions = false,
+   Flag = "AimlockBodyPart",
+   Callback = function(Options)
+        AimlockSettings.BodyPart = Options[1]
+   end,
+})
+
+local PlayersTab = Window:CreateTab("玩家", 81489458260315)
+PlayersTab:CreateSection("所有玩家")
+-- 下拉選單 / 搜尋部分保留 (僅翻譯標題)
+PlayersTab:CreateSection("搜尋玩家")
+PlayersTab:CreateToggle({
+    Name = "搜尋模式",
+    CurrentValue = false,
+    Flag = "SearchMode",
+    Callback = function(Value)
+        SearchMode = Value
+    end
+})
+PlayersTab:CreateInput({
+   Name = "使用者名稱",
+   CurrentValue = "",
+   PlaceholderText = "輸入使用者名稱",
+   RemoveTextAfterFocusLost = false,
+   Flag = "SearchUsername",
+   Callback = function(Text)
+       SearchUsername = Text
+   end,
+})
+
+PlayersTab:CreateSection("操作")
+PlayersTab:CreateButton({
+    Name = "觀戰玩家",
+    Callback = function() ... end
+})
+PlayersTab:CreateButton({
+    Name = "停止觀戰",
+    Callback = function() ... end
+})
+PlayersTab:CreateButton({
+    Name = "傳送到玩家",
+    Callback = function() ... end
+})
+
+local MeTab = Window:CreateTab("其他", 16181361436)
+
+-- WalkSpeed
+MeTab:CreateSection("速度與跳躍")
+MeTab:CreateSlider({
+   Name = "行走速度",
+   Range = {16, 1000},
+   Increment = 1,
+   Suffix = "studs/s",
+   CurrentValue = 16,
+   Flag = "WalkSpeed",
+   Callback = function(Value) ... end,
+})
+
+-- JumpPower
+MeTab:CreateSlider({
+   Name = "跳躍力",
+   Range = {50, 500},
+   Increment = 1,
+   Suffix = "studs/s",
+   CurrentValue = 50,
+   Flag = "JumpPower",
+   Callback = function(Value) ... end,
+})
+
+-- Fly
+MeTab:CreateSection("飛行")
+FlyToggle = MeTab:CreateToggle({
+    Name = "飛行",
+    CurrentValue = false,
+    Flag = "Fly",
+    Callback = function(Value) ... end
+})
+
+MeTab:CreateSlider({
+   Name = "飛行速度",
+   Range = {20, 300},
+   Increment = 1,
+   Suffix = "studs/s",
+   CurrentValue = 20,
+   Flag = "FlySpeed",
+   Callback = function(Value) FlySpeed = Value end,
+})
+
+FlyKeyInput = MeTab:CreateInput({
+   Name = "切換按鍵",
+   CurrentValue = "U",
+   PlaceholderText = "U",
+   RemoveTextAfterFocusLost = false,
+   Flag = "FlyKey",
+   Callback = function(Text) ... end,
+})
+
+-- HipHeight
+MeTab:CreateSection("趣味設定")
+MeTab:CreateSlider({
+   Name = "臀部高度",
+   Range = {0, 50},
+   Increment = 0.5,
+   Suffix = "studs",
+   CurrentValue = 2,
+   Flag = "HipHeight",
+   Callback = function(Value) ... end,
+})
+
+-- Gravity
+MeTab:CreateSlider({
+   Name = "重力",
+   Range = {0, 500},
+   Increment = 1,
+   Suffix = "studs/s²",
+   CurrentValue = math.floor(workspace.Gravity),
+   Flag = "Gravity",
+   Callback = function(Value) workspace.Gravity = Value end,
+})
+
+MeTab:CreateSection("其他功能")
+MeTab:CreateButton({
+    Name = "解除 VC 封鎖",
+    Callback = function() ... end
+})
+MeTab:CreateButton({
+    Name = "鋼琴 - Talentless",  
+    Callback = function() ... end
+})
+MeTab:CreateButton({
+    Name = "防止 AFK 踢出",
+    Callback = function() ... end
+})
